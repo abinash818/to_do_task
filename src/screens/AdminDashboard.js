@@ -114,7 +114,7 @@ const AdminDashboard = ({ navigation }) => {
                     isWeb && styles.webContainer
                 ]}>
                     <StatCard icon="📋" value={stats.tasks} label="Total Tasks" color="#667eea" />
-                    <StatCard icon="⏳" value={stats.approvals} label="Approvals" color="#f59e0b" onPress={() => { }} />
+                    <StatCard icon="⏳" value={stats.approvals} label="Approvals" color="#f59e0b" onPress={() => navigation.navigate('TaskApprovals')} />
                     <StatCard icon="📁" value={stats.plans} label="Plans" color="#10b981" onPress={() => navigation.navigate('ManagePlans')} />
                     <StatCard icon="👥" value={stats.staff} label="Staff" color="#8b5cf6" onPress={() => navigation.navigate('ManageStaff')} />
                 </Animated.View>

@@ -16,6 +16,7 @@ import TaskDetailScreen from './src/screens/TaskDetailScreen';
 import ReportsScreen from './src/screens/ReportsScreen';
 import ManageStaffScreen from './src/screens/ManageStaffScreen';
 import StaffDashboard from './src/screens/StaffDashboard';
+import TaskApprovalsScreen from './src/screens/TaskApprovalsScreen';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { ActivityIndicator, View, Platform } from 'react-native';
 
@@ -47,6 +48,7 @@ const Navigation = () => {
           <Stack.Screen name="TaskDetail" component={TaskDetailScreen} />
           <Stack.Screen name="Reports" component={ReportsScreen} />
           <Stack.Screen name="ManageStaff" component={ManageStaffScreen} />
+          <Stack.Screen name="TaskApprovals" component={TaskApprovalsScreen} />
         </>
       ) : (
         <>
