@@ -42,6 +42,16 @@ const taskSchema = mongoose.Schema({
         required: true,
         ref: 'User',
     },
+    customerDetails: {
+        name: String,
+        address: String,
+        mobile: String,
+        email: String,
+    },
+    paymentDetails: {
+        totalAmount: Number,
+        paidAmount: Number,
+    },
 }, {
     timestamps: true,
 });

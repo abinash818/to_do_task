@@ -17,6 +17,7 @@ const ManageStaffScreen = ({ navigation }) => {
     const [newPassword, setNewPassword] = useState('');
     const [resetting, setResetting] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
 
     const API_URL = 'http://localhost:5000/api';
 
@@ -37,6 +38,40 @@ const ManageStaffScreen = ({ navigation }) => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleDelete = (staff) => {
+        Alert.alert(
+            'Confirm Delete',
+            `Are you sure you want to delete ${staff.name}? This cannot be undone.`,
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            const response = await fetch(`${API_URL}/users/${staff._id}`, {
+                                method: 'DELETE',
+                                headers: {
+                                    'Authorization': `Bearer ${token}`
+                                }
+                            });
+
+                            if (response.ok) {
+                                Alert.alert('Success', 'Staff member deleted');
+                                fetchStaff(); // Refresh list
+                            } else {
+                                const data = await response.json();
+                                Alert.alert('Error', data.message || 'Failed to delete staff');
+                            }
+                        } catch (error) {
+                            Alert.alert('Error', 'Failed to delete staff member');
+                        }
+                    }
+                }
+            ]
+        );
     };
 
     const generatePassword = () => {
@@ -125,6 +160,11 @@ const ManageStaffScreen = ({ navigation }) => {
 
     const strength = getPasswordStrength(newPassword);
 
+    const filteredStaff = staffList.filter(staff =>
+        staff.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        staff.username?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     if (loading) {
         return (
             <View style={styles.centered}>
@@ -153,11 +193,24 @@ const ManageStaffScreen = ({ navigation }) => {
                         onPress={() => navigation.navigate('AddStaff')}
                     />
                 </View>
-                <Text style={styles.headerSubtitle}>{staffList.length} staff members</Text>
+
+                {/* Search Bar */}
+                <View style={styles.searchContainer}>
+                    <TextInput
+                        style={styles.searchInput}
+                        placeholder="Search staff name..."
+                        placeholderTextColor="#ccc"
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                    />
+                    <IconButton icon="magnify" iconColor="#fff" size={20} style={styles.searchIcon} />
+                </View>
+
+                <Text style={styles.headerSubtitle}>{filteredStaff.length} staff members</Text>
             </LinearGradient>
 
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-                {staffList.map((staff, index) => (
+                {filteredStaff.map((staff, index) => (
                     <Card key={staff._id || index} style={styles.staffCard}>
                         <Card.Content style={styles.staffContent}>
                             <View style={styles.staffInfo}>
@@ -171,16 +224,26 @@ const ManageStaffScreen = ({ navigation }) => {
                                     <Text style={styles.staffUsername}>@{staff.username}</Text>
                                 </View>
                             </View>
-                            <TouchableOpacity
-                                style={styles.resetButton}
-                                onPress={() => {
-                                    setSelectedStaff(staff);
-                                    setNewPassword('');
-                                    setCopied(false);
-                                }}
-                            >
-                                <Text style={styles.resetButtonText}>🔐 Reset</Text>
-                            </TouchableOpacity>
+
+                            <View style={styles.actionButtons}>
+                                <TouchableOpacity
+                                    style={styles.resetButton}
+                                    onPress={() => {
+                                        setSelectedStaff(staff);
+                                        setNewPassword('');
+                                        setCopied(false);
+                                    }}
+                                >
+                                    <Text style={styles.resetButtonText}>🔐 Reset</Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={styles.deleteButton}
+                                    onPress={() => handleDelete(staff)}
+                                >
+                                    <IconButton icon="delete" iconColor="#ef4444" size={20} style={{ margin: 0 }} />
+                                </TouchableOpacity>
+                            </View>
                         </Card.Content>
                     </Card>
                 ))}
@@ -475,6 +538,30 @@ const styles = StyleSheet.create({
         flex: 1,
         marginRight: 10,
         borderRadius: 10,
+    },
+    searchContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        borderRadius: 20,
+        marginHorizontal: 15,
+        marginTop: 10,
+        paddingHorizontal: 15,
+    },
+    searchInput: {
+        flex: 1,
+        color: '#fff',
+        height: 40,
+    },
+    searchIcon: {
+        margin: 0,
+    },
+    actionButtons: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    deleteButton: {
+        marginLeft: 10,
     },
     saveButton: {
         flex: 1,

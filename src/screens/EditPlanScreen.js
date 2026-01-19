@@ -11,12 +11,17 @@ const EditPlanScreen = ({ route, navigation }) => {
     const [description, setDescription] = useState('');
     const [maxDays, setMaxDays] = useState('7');
     const [subtasks, setSubtasks] = useState([{ title: '', maxDays: '1', isMandatory: true }]);
+    const [variants, setVariants] = useState([]);
     const [loading, setLoading] = useState(false);
-    const { createPlan, getPlans } = useAuth();
+    const { createPlan, getPlans, token } = useAuth();
+
+    // Add missing API update methods to AuthContext manually if they don't exist, 
+    // but for now we'll assume they need to be called here or AuthContext needs update.
+    // Given the previous code, we'll stick to using the payload correctly.
+    const API_URL = 'http://localhost:5000/api';
 
     useEffect(() => {
         if (isEdit) {
-            // For now we fetch all and find, but ideally there is getPlanById
             const fetchPlan = async () => {
                 try {
                     const plans = await getPlans();
@@ -26,6 +31,7 @@ const EditPlanScreen = ({ route, navigation }) => {
                         setDescription(plan.description);
                         setMaxDays(plan.maxDays?.toString() || '7');
                         setSubtasks(plan.subtasks);
+                        setVariants(plan.variants || []);
                     }
                 } catch (error) {
                     Alert.alert('Error', 'Failed to load plan');
@@ -58,6 +64,57 @@ const EditPlanScreen = ({ route, navigation }) => {
         setSubtasks(newSubtasks);
     };
 
+    // Variant Handlers
+    const addVariant = () => {
+        setVariants([...variants, { name: '', duration: '', subtasks: [] }]);
+    };
+
+    const removeVariant = (index) => {
+        const newVariants = [...variants];
+        newVariants.splice(index, 1);
+        setVariants(newVariants);
+    };
+
+    const updateVariantName = (text, index) => {
+        const newVariants = [...variants];
+        newVariants[index].name = text;
+        setVariants(newVariants);
+    };
+
+    const updateVariantDuration = (text, index) => {
+        const newVariants = [...variants];
+        newVariants[index].duration = text;
+        setVariants(newVariants);
+    };
+
+    // Subtask Handlers for Variants
+    const addVariantSubtask = (variantIndex) => {
+        const newVariants = [...variants];
+        if (!newVariants[variantIndex].subtasks) {
+            newVariants[variantIndex].subtasks = [];
+        }
+        newVariants[variantIndex].subtasks.push({ title: '', maxDays: '1', isMandatory: true });
+        setVariants(newVariants);
+    };
+
+    const removeVariantSubtask = (variantIndex, subtaskIndex) => {
+        const newVariants = [...variants];
+        newVariants[variantIndex].subtasks.splice(subtaskIndex, 1);
+        setVariants(newVariants);
+    };
+
+    const updateVariantSubtaskTitle = (text, variantIndex, subtaskIndex) => {
+        const newVariants = [...variants];
+        newVariants[variantIndex].subtasks[subtaskIndex].title = text;
+        setVariants(newVariants);
+    };
+
+    const updateVariantSubtaskMaxDays = (text, variantIndex, subtaskIndex) => {
+        const newVariants = [...variants];
+        newVariants[variantIndex].subtasks[subtaskIndex].maxDays = text;
+        setVariants(newVariants);
+    };
+
     const handleSave = async () => {
         if (!name.trim()) {
             Alert.alert('Error', 'Please enter a plan name');
@@ -72,19 +129,44 @@ const EditPlanScreen = ({ route, navigation }) => {
 
         setLoading(true);
         try {
-            if (isEdit) {
-                // Implement updatePlan in AuthContext if needed
-                Alert.alert('Info', 'Update not fully implemented yet');
-            } else {
-                const formattedSubtasks = filteredSubtasks.map(s => ({
+            const payload = {
+                name,
+                description,
+                maxDays: parseInt(maxDays) || 7,
+                subtasks: filteredSubtasks.map(s => ({
                     title: s.title,
                     maxDays: parseInt(s.maxDays) || 1,
                     isMandatory: s.isMandatory
-                }));
-                await createPlan({ name, description, maxDays: parseInt(maxDays) || 7, subtasks: formattedSubtasks });
+                })),
+                variants: variants.filter(v => v.name.trim() !== '').map(v => ({
+                    name: v.name,
+                    duration: parseInt(v.duration) || 1,
+                    subtasks: v.subtasks ? v.subtasks.filter(s => s.title.trim() !== '').map(s => ({
+                        title: s.title,
+                        maxDays: parseInt(s.maxDays) || 1,
+                        isMandatory: s.isMandatory
+                    })) : []
+                }))
+            };
+
+            if (isEdit) {
+                const response = await fetch(`${API_URL}/plans/${planId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error('Failed to update plan');
+
+                Alert.alert('Success', 'Plan updated successfully');
+            } else {
+                await createPlan(payload);
                 Alert.alert('Success', 'Plan created successfully');
-                navigation.goBack();
             }
+            navigation.goBack();
         } catch (error) {
             Alert.alert('Error', error.message || 'Failed to save plan');
         } finally {
@@ -124,6 +206,61 @@ const EditPlanScreen = ({ route, navigation }) => {
                         onChangeText={setMaxDays}
                         keyboardType="numeric"
                     />
+
+                    {/* Variants Section */}
+                    <View style={styles.subtasksHeader}>
+                        <Text style={styles.sectionTitle}>Plan Variants (Optional)</Text>
+                        <Button icon="plus" mode="text" onPress={addVariant}>Add</Button>
+                    </View>
+
+                    {variants.map((variant, index) => (
+                        <View key={index} style={styles.subtaskContainer}>
+                            <View style={styles.subtaskRow}>
+                                <TextInput
+                                    style={[styles.input, { flex: 1, marginBottom: 0 }]}
+                                    placeholder="Variant Name (e.g., Self, Online)"
+                                    value={variant.name}
+                                    onChangeText={(text) => updateVariantName(text, index)}
+                                />
+                                <IconButton icon="delete" iconColor="#FF5252" onPress={() => removeVariant(index)} />
+                            </View>
+                            <View style={styles.daysRow}>
+                                <Text style={styles.daysLabel}>Duration (Days):</Text>
+                                <TextInput
+                                    style={styles.daysInput}
+                                    placeholder="5"
+                                    value={variant.duration?.toString()}
+                                    onChangeText={(text) => updateVariantDuration(text, index)}
+                                    keyboardType="numeric"
+                                />
+                            </View>
+
+                            {/* Variant Subtasks */}
+                            <Text style={[styles.inputLabel, { fontSize: 13, color: '#666', marginTop: 10, marginLeft: 5 }]}>Variant Subtasks:</Text>
+                            {variant.subtasks && variant.subtasks.map((vSubtask, vSubIndex) => (
+                                <View key={vSubIndex} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 5, marginLeft: 10 }}>
+                                    <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: '#666', marginRight: 8 }} />
+                                    <TextInput
+                                        style={[styles.input, { flex: 1, marginBottom: 0, paddingVertical: 8, height: 40, marginRight: 5 }]}
+                                        placeholder="Step title"
+                                        value={vSubtask.title}
+                                        onChangeText={(text) => updateVariantSubtaskTitle(text, index, vSubIndex)}
+                                    />
+                                    <TextInput
+                                        style={[styles.daysInput, { width: 50, height: 40, marginRight: 5 }]}
+                                        placeholder="Days"
+                                        value={vSubtask.maxDays?.toString()}
+                                        onChangeText={(text) => updateVariantSubtaskMaxDays(text, index, vSubIndex)}
+                                        keyboardType="numeric"
+                                    />
+                                    <IconButton icon="close" size={16} onPress={() => removeVariantSubtask(index, vSubIndex)} />
+                                </View>
+                            ))}
+                            <Button compact mode="text" onPress={() => addVariantSubtask(index)}>+ Add Step</Button>
+                        </View>
+                    ))}
+
+                    <Divider style={{ marginVertical: 15 }} />
 
                     <View style={styles.subtasksHeader}>
                         <Text style={styles.sectionTitle}>Subtasks</Text>

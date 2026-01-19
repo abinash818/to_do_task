@@ -113,6 +113,12 @@ const AdminDashboard = ({ navigation }) => {
                             onPress={() => navigation.navigate('AssignTask')}
                         />
                         <ActionButton
+                            icon="👤"
+                            label="New Customer"
+                            color={['#ec4899', '#db2777']}
+                            onPress={() => navigation.navigate('CustomerEntry')}
+                        />
+                        <ActionButton
                             icon="📁"
                             label="Manage Plans"
                             color={['#10b981', '#059669']}

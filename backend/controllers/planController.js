@@ -4,7 +4,7 @@ const Plan = require('../models/planModel');
 // @route   POST /api/plans
 // @access  Private/Admin
 const createPlan = async (req, res) => {
-    const { name, description, subtasks } = req.body;
+    const { name, description, subtasks, maxDays, variants } = req.body;
 
     if (!name || !subtasks || subtasks.length === 0) {
         res.status(400).json({ message: 'Please add a name and at least one subtask' });
@@ -15,6 +15,8 @@ const createPlan = async (req, res) => {
         name,
         description,
         subtasks,
+        maxDays,
+        variants,
         createdBy: req.user._id,
     });
 
@@ -50,7 +52,7 @@ const getPlanById = async (req, res) => {
 // @route   PUT /api/plans/:id
 // @access  Private/Admin
 const updatePlan = async (req, res) => {
-    const { name, description, subtasks } = req.body;
+    const { name, description, subtasks, maxDays, variants } = req.body;
 
     const plan = await Plan.findById(req.params.id);
 
@@ -58,6 +60,8 @@ const updatePlan = async (req, res) => {
         plan.name = name || plan.name;
         plan.description = description || plan.description;
         plan.subtasks = subtasks || plan.subtasks;
+        plan.maxDays = maxDays || plan.maxDays;
+        plan.variants = variants || plan.variants;
 
         const updatedPlan = await plan.save();
         res.json(updatedPlan);

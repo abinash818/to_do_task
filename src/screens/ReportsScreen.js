@@ -24,22 +24,8 @@ const ReportsScreen = ({ navigation }) => {
     const [selectedTask, setSelectedTask] = useState(null);
     const [filter, setFilter] = useState('all'); // all, completed, processing, pending, overdue
 
-    // Force scrollbar on web
-    useEffect(() => {
-        if (Platform.OS === 'web') {
-            const style = document.createElement('style');
-            style.textContent = `
-                ::-webkit-scrollbar { width: 12px; display: block; }
-                ::-webkit-scrollbar-track { background: #f1f1f1; }
-                ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 6px; }
-                ::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
-                /* Ensure body scrolls */
-                html, body, #root { height: 100%; overflow-y: auto; }
-            `;
-            document.head.appendChild(style);
-            return () => document.head.removeChild(style);
-        }
-    }, []);
+    // Force scrollbar on web (Handled globally in App.js now)
+    // useEffect(() => { ... }, []);
 
     useFocusEffect(
         useCallback(() => {
@@ -151,7 +137,7 @@ const ReportsScreen = ({ navigation }) => {
                 {/* Dashboard Header */}
                 <View style={[styles.header, { backgroundColor: '#FAFBFC', paddingTop: 20, paddingBottom: 10 }]}>
                     <View style={styles.headerRow}>
-                        <IconButton icon="menu" iconColor="#111" size={24} onPress={() => { }} />
+                        <IconButton icon="arrow-left" iconColor="#111" size={24} onPress={() => navigation.goBack()} />
                         <Text style={{ fontSize: 22, fontWeight: '800', color: '#111' }}>Dashboard</Text>
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                             <IconButton icon="magnify" iconColor="#666" size={24} />
@@ -421,20 +407,21 @@ const styles = StyleSheet.create({
     },
     statsGrid: {
         flexDirection: 'row',
-        flexWrap: 'wrap',
         justifyContent: 'space-between',
+        // flexWrap: 'wrap', // Removed wrap for single line
     },
     dashboardCard: {
         backgroundColor: '#fff',
-        borderRadius: 16,
-        padding: 20,
+        borderRadius: 12, // Slightly smaller radius
+        padding: 10, // Reduced padding
         marginBottom: 15,
-        width: (width - 40) / 2,
+        flex: 1, // Distribute space evenly
+        marginHorizontal: 4, // Add small spacing between cards
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
+        shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
-        shadowRadius: 10,
-        elevation: 3,
+        shadowRadius: 5,
+        elevation: 2,
     },
     dashboardCardFull: {
         width: '100%',
@@ -446,12 +433,12 @@ const styles = StyleSheet.create({
         marginBottom: 5,
     },
     statTitle: {
-        fontSize: 15,
+        fontSize: 11, // Smaller title
         fontWeight: '600',
         color: '#111827',
     },
     statNumber: {
-        fontSize: 28,
+        fontSize: 20, // Smaller number
         fontWeight: 'bold',
         color: '#111827',
         marginTop: 5,

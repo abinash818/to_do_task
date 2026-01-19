@@ -8,7 +8,8 @@ import {
     Platform,
     Animated,
     Dimensions,
-    StatusBar
+    StatusBar,
+    ScrollView
 } from 'react-native';
 import { Button, Surface } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -86,72 +87,74 @@ const LoginScreen = ({ navigation }) => {
                     behavior={Platform.OS === "ios" ? "padding" : "height"}
                     style={styles.content}
                 >
-                    {/* Logo/Branding */}
-                    <Animated.View style={[styles.brandingContainer, {
-                        opacity: fadeAnim,
-                        transform: [{ translateY: slideAnim }]
-                    }]}>
-                        <View style={styles.logoCircle}>
-                            <Text style={styles.logoText}>✓</Text>
-                        </View>
-                        <Text style={styles.appName}>TaskFlow</Text>
-                        <Text style={styles.tagline}>Manage • Assign • Complete</Text>
-                    </Animated.View>
-
-                    {/* Login Card */}
-                    <Animated.View style={{
-                        opacity: fadeAnim,
-                        transform: [
-                            { translateY: slideAnim },
-                            { scale: scaleAnim }
-                        ]
-                    }}>
-                        <Surface style={styles.surface} elevation={5}>
-                            <Text style={styles.title}>Welcome Back</Text>
-                            <Text style={styles.subtitle}>Sign in with your User ID</Text>
-
-                            <View style={styles.inputContainer}>
-                                <View style={styles.inputWrapper}>
-                                    <Text style={styles.inputIcon}>👤</Text>
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder="User ID"
-                                        placeholderTextColor="#aaa"
-                                        value={userId}
-                                        onChangeText={setUserId}
-                                        autoCapitalize="none"
-                                    />
-                                </View>
-                                <View style={styles.inputWrapper}>
-                                    <Text style={styles.inputIcon}>🔒</Text>
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder="Password"
-                                        placeholderTextColor="#aaa"
-                                        value={password}
-                                        onChangeText={setPassword}
-                                        secureTextEntry
-                                    />
-                                </View>
+                    <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }} showsVerticalScrollIndicator={false}>
+                        {/* Logo/Branding */}
+                        <Animated.View style={[styles.brandingContainer, {
+                            opacity: fadeAnim,
+                            transform: [{ translateY: slideAnim }]
+                        }]}>
+                            <View style={styles.logoCircle}>
+                                <Text style={styles.logoText}>✓</Text>
                             </View>
+                            <Text style={styles.appName}>TaskFlow</Text>
+                            <Text style={styles.tagline}>Manage • Assign • Complete</Text>
+                        </Animated.View>
 
-                            <Button
-                                mode="contained"
-                                onPress={handleLogin}
-                                loading={loading}
-                                disabled={loading}
-                                style={styles.button}
-                                contentStyle={styles.buttonContent}
-                                buttonColor="#667eea"
-                            >
-                                {loading ? 'Signing in...' : 'Sign In'}
-                            </Button>
+                        {/* Login Card */}
+                        <Animated.View style={{
+                            opacity: fadeAnim,
+                            transform: [
+                                { translateY: slideAnim },
+                                { scale: scaleAnim }
+                            ]
+                        }}>
+                            <Surface style={styles.surface} elevation={5}>
+                                <Text style={styles.title}>Welcome Back</Text>
+                                <Text style={styles.subtitle}>Sign in with your User ID</Text>
 
-                            <Text style={styles.footerText}>
-                                Contact your administrator for account access
-                            </Text>
-                        </Surface>
-                    </Animated.View>
+                                <View style={styles.inputContainer}>
+                                    <View style={styles.inputWrapper}>
+                                        <Text style={styles.inputIcon}>👤</Text>
+                                        <TextInput
+                                            style={styles.input}
+                                            placeholder="User ID"
+                                            placeholderTextColor="#aaa"
+                                            value={userId}
+                                            onChangeText={setUserId}
+                                            autoCapitalize="none"
+                                        />
+                                    </View>
+                                    <View style={styles.inputWrapper}>
+                                        <Text style={styles.inputIcon}>🔒</Text>
+                                        <TextInput
+                                            style={styles.input}
+                                            placeholder="Password"
+                                            placeholderTextColor="#aaa"
+                                            value={password}
+                                            onChangeText={setPassword}
+                                            secureTextEntry
+                                        />
+                                    </View>
+                                </View>
+
+                                <Button
+                                    mode="contained"
+                                    onPress={handleLogin}
+                                    loading={loading}
+                                    disabled={loading}
+                                    style={styles.button}
+                                    contentStyle={styles.buttonContent}
+                                    buttonColor="#667eea"
+                                >
+                                    {loading ? 'Signing in...' : 'Sign In'}
+                                </Button>
+
+                                <Text style={styles.footerText}>
+                                    Contact your administrator for account access
+                                </Text>
+                            </Surface>
+                        </Animated.View>
+                    </ScrollView>
                 </KeyboardAvoidingView>
             </LinearGradient>
         </View>

@@ -84,4 +84,18 @@ const resetPassword = async (req, res) => {
     res.json({ message: 'Password reset successfully' });
 };
 
-module.exports = { authUser, registerUser, getUsers, resetPassword };
+// @desc    Delete user (Admin only)
+// @route   DELETE /api/users/:id
+// @access  Private/Admin
+const deleteUser = async (req, res) => {
+    const user = await User.findById(req.params.id);
+
+    if (user) {
+        await user.remove();
+        res.json({ message: 'User removed' });
+    } else {
+        res.status(404).json({ message: 'User not found' });
+    }
+};
+
+module.exports = { authUser, registerUser, getUsers, resetPassword, deleteUser };

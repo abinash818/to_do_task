@@ -11,12 +11,13 @@ import AdminDashboard from './src/screens/AdminDashboard';
 import ManagePlansScreen from './src/screens/ManagePlansScreen';
 import EditPlanScreen from './src/screens/EditPlanScreen';
 import AssignTaskScreen from './src/screens/AssignTaskScreen';
+import CustomerEntryScreen from './src/screens/CustomerEntryScreen';
 import TaskDetailScreen from './src/screens/TaskDetailScreen';
 import ReportsScreen from './src/screens/ReportsScreen';
 import ManageStaffScreen from './src/screens/ManageStaffScreen';
 import StaffDashboard from './src/screens/StaffDashboard';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, View, Platform } from 'react-native';
 
 const Stack = createStackNavigator();
 
@@ -42,6 +43,7 @@ const Navigation = () => {
           <Stack.Screen name="ManagePlans" component={ManagePlansScreen} />
           <Stack.Screen name="EditPlan" component={EditPlanScreen} />
           <Stack.Screen name="AssignTask" component={AssignTaskScreen} />
+          <Stack.Screen name="CustomerEntry" component={CustomerEntryScreen} />
           <Stack.Screen name="TaskDetail" component={TaskDetailScreen} />
           <Stack.Screen name="Reports" component={ReportsScreen} />
           <Stack.Screen name="ManageStaff" component={ManageStaffScreen} />
@@ -57,6 +59,26 @@ const Navigation = () => {
 };
 
 export default function App() {
+  React.useEffect(() => {
+    if (Platform.OS === 'web') {
+      const style = document.createElement('style');
+      style.textContent = `
+        /* Force page-level scrolling */
+        html { height: 100%; overflow-y: scroll; }
+        body { min-height: 100%; overflow-y: auto; }
+        #root { display: flex; flex-direction: column; min-height: 100%; }
+
+        /* Custom Scrollbar Styling */
+        ::-webkit-scrollbar { width: 12px; height: 12px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 6px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+    `;
+      document.head.appendChild(style);
+      return () => document.head.removeChild(style);
+    }
+  }, []);
+
   return (
     <AuthProvider>
       <PaperProvider>
