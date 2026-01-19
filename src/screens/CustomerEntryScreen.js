@@ -26,11 +26,10 @@ const CustomerEntryScreen = ({ navigation }) => {
     // Valuation Specifics
     const [branchName, setBranchName] = useState('');
     const [customBankName, setCustomBankName] = useState('');
+    const [validationError, setValidationError] = useState('');
 
     // Assignment
     const [selectedStaff, setSelectedStaff] = useState(null);
-
-    // Data & State
     const [staffList, setStaffList] = useState([]);
     const [planList, setPlanList] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -117,13 +116,13 @@ const CustomerEntryScreen = ({ navigation }) => {
 
             if (isValuation) {
                 if (!branchName) {
-                    Alert.alert('Error', 'Please enter Branch Name');
+                    setValidationError('Please enter Branch Name');
                     setSaving(false);
                     return;
                 }
                 const bank = selectedSubPlan?.name === 'Other' ? customBankName : selectedSubPlan?.name;
                 if (!bank) {
-                    Alert.alert('Error', 'Please specify Bank Name');
+                    setValidationError('Please specify Bank Name');
                     setSaving(false);
                     return;
                 }
@@ -239,18 +238,20 @@ const CustomerEntryScreen = ({ navigation }) => {
                                     style={styles.input}
                                     placeholder="Enter Custom Bank Name *"
                                     value={customBankName}
-                                    onChangeText={setCustomBankName}
+                                    onChangeText={(text) => { setCustomBankName(text); setValidationError(''); }}
                                 />
                             )}
 
                             <TextInput
-                                style={styles.input}
+                                style={[styles.input, validationError && !branchName && styles.inputError]}
                                 placeholder="Branch Name *"
                                 value={branchName}
-                                onChangeText={setBranchName}
+                                onChangeText={(text) => { setBranchName(text); setValidationError(''); }}
                             />
                         </View>
                     )}
+
+                    {validationError ? <Text style={styles.errorText}>{validationError}</Text> : null}
 
                     <TextInput style={styles.input} placeholder="Task Title *" value={title} onChangeText={setTitle} />
 
@@ -349,7 +350,9 @@ const styles = StyleSheet.create({
     selectedSubPlanChip: { backgroundColor: '#667eea' },
     subPlanText: { fontSize: 13, color: '#333' },
     selectedLinkText: { color: '#fff', fontWeight: 'bold' },
-    valuationContainer: { marginTop: 10, padding: 10, backgroundColor: '#e3f2fd', borderRadius: 8, marginBottom: 15 }
+    valuationContainer: { marginTop: 10, padding: 10, backgroundColor: '#e3f2fd', borderRadius: 8, marginBottom: 15 },
+    inputError: { borderColor: '#d32f2f', borderWidth: 1, backgroundColor: '#ffebee' },
+    errorText: { color: '#d32f2f', marginBottom: 10, marginLeft: 5, fontWeight: 'bold' }
 });
 
 export default CustomerEntryScreen;
