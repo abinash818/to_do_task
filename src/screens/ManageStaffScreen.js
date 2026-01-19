@@ -1,9 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import {
-import {
-        StyleSheet, View, Text, ScrollView, TouchableOpacity,
-        TextInput, Alert, StatusBar, Modal, Platform
-    } from 'react-native';
+    StyleSheet, View, Text, ScrollView, TouchableOpacity,
+    TextInput, Alert, StatusBar, Modal, Platform
+} from 'react-native';
 import { Card, IconButton, Button, ActivityIndicator, Chip } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../context/AuthContext';
