@@ -1,8 +1,9 @@
 import React, { useState, useCallback } from 'react';
 import {
-    StyleSheet, View, Text, ScrollView, TouchableOpacity,
-    TextInput, Alert, StatusBar, Modal
-} from 'react-native';
+import {
+        StyleSheet, View, Text, ScrollView, TouchableOpacity,
+        TextInput, Alert, StatusBar, Modal, Platform
+    } from 'react-native';
 import { Card, IconButton, Button, ActivityIndicator, Chip } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../context/AuthContext';
@@ -19,7 +20,12 @@ const ManageStaffScreen = ({ navigation }) => {
     const [copied, setCopied] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
-    const API_URL = 'http://localhost:5000/api';
+    let API_URL = 'http://localhost:5000/api';
+    if (Platform.OS === 'web') {
+        if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+            API_URL = '/api';
+        }
+    }
 
     useFocusEffect(
         useCallback(() => {

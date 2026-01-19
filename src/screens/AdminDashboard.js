@@ -7,9 +7,13 @@ import { useFocusEffect } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 
+import { useWindowDimensions } from 'react-native';
+
 const AdminDashboard = ({ navigation }) => {
     const { logout, user, getTasks, getPlans, getStaff } = useAuth();
     const [stats, setStats] = useState({ tasks: 0, plans: 0, staff: 0, pending: 0 });
+    const { width } = useWindowDimensions();
+    const isWeb = width > 768;
 
     // Animations
     const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -45,22 +49,32 @@ const AdminDashboard = ({ navigation }) => {
         }, [getTasks, getPlans, getStaff])
     );
 
-    const ActionButton = ({ icon, label, color, onPress }) => (
-        <TouchableOpacity style={styles.actionButton} onPress={onPress} activeOpacity={0.8}>
-            <LinearGradient
-                colors={color}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.actionGradient}
-            >
-                <Text style={styles.actionIcon}>{icon}</Text>
-                <Text style={styles.actionLabel}>{label}</Text>
-            </LinearGradient>
-        </TouchableOpacity>
-    );
+    const ActionButton = ({ icon, label, color, onPress }) => {
+        // Responsive width: 4 columns on web, 2 on mobile
+        const buttonWidth = isWeb ? (width - 60) / 4 : (width - 40) / 2 - 10;
+
+        return (
+            <TouchableOpacity style={[styles.actionButton, { width: buttonWidth }]} onPress={onPress} activeOpacity={0.8}>
+                <LinearGradient
+                    colors={color}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.actionGradient}
+                >
+                    <Text style={styles.actionIcon}>{icon}</Text>
+                    <Text style={styles.actionLabel}>{label}</Text>
+                </LinearGradient>
+            </TouchableOpacity>
+        );
+    };
 
     const StatCard = ({ icon, value, label, color, onPress }) => (
-        <TouchableOpacity onPress={onPress} disabled={!onPress} activeOpacity={onPress ? 0.7 : 1}>
+        <TouchableOpacity
+            style={[styles.statCardContainer, { flex: 1 }]}
+            onPress={onPress}
+            disabled={!onPress}
+            activeOpacity={onPress ? 0.7 : 1}
+        >
             <Surface style={styles.statCard} elevation={2}>
                 <View style={[styles.statIconContainer, { backgroundColor: color + '20' }]}>
                     <Text style={styles.statIcon}>{icon}</Text>
@@ -82,7 +96,7 @@ const AdminDashboard = ({ navigation }) => {
                 end={{ x: 1, y: 1 }}
                 style={styles.header}
             >
-                <View style={styles.headerContent}>
+                <View style={[styles.headerContent, isWeb && styles.webContainer]}>
                     <View>
                         <Text style={styles.greeting}>Welcome back,</Text>
                         <Text style={styles.userName}>{user?.name || 'Admin'}</Text>
@@ -93,7 +107,11 @@ const AdminDashboard = ({ navigation }) => {
                 </View>
 
                 {/* Stats Row */}
-                <Animated.View style={[styles.statsRow, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
+                <Animated.View style={[
+                    styles.statsRow,
+                    { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+                    isWeb && styles.webContainer
+                ]}>
                     <StatCard icon="📋" value={stats.tasks} label="Total Tasks" color="#667eea" />
                     <StatCard icon="⏳" value={stats.pending} label="Pending" color="#f59e0b" />
                     <StatCard icon="📁" value={stats.plans} label="Plans" color="#10b981" onPress={() => navigation.navigate('ManagePlans')} />
@@ -103,7 +121,7 @@ const AdminDashboard = ({ navigation }) => {
 
             <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
                 {/* Quick Actions */}
-                <Animated.View style={{ opacity: fadeAnim }}>
+                <Animated.View style={[{ opacity: fadeAnim }, isWeb && styles.webContainer]}>
                     <Text style={styles.sectionTitle}>Quick Actions</Text>
                     <View style={styles.actionsGrid}>
                         <ActionButton
@@ -140,15 +158,18 @@ const AdminDashboard = ({ navigation }) => {
                 </Animated.View>
 
                 {/* Recent Activity Card */}
-                <Card style={styles.activityCard}>
-                    <Card.Content>
-                        <Title style={styles.cardTitle}>📈 Dashboard Overview</Title>
-                        <Paragraph style={styles.cardDescription}>
-                            You have {stats.pending} pending tasks and {stats.staff} active staff members.
-                            Use the quick actions above to manage your team efficiently.
-                        </Paragraph>
-                    </Card.Content>
-                </Card>
+                {/* Removed fixed width constraint for better mobile flow, centered max width for web */}
+                <View style={[isWeb && styles.webContainer]}>
+                    <Card style={styles.activityCard}>
+                        <Card.Content>
+                            <Title style={styles.cardTitle}>📈 Dashboard Overview</Title>
+                            <Paragraph style={styles.cardDescription}>
+                                You have {stats.pending} pending tasks and {stats.staff} active staff members.
+                                Use the quick actions above to manage your team efficiently.
+                            </Paragraph>
+                        </Card.Content>
+                    </Card>
+                </View>
             </ScrollView>
         </View>
     );
@@ -158,6 +179,11 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#f5f7fa',
+    },
+    webContainer: {
+        width: '100%',
+        maxWidth: 1000,
+        alignSelf: 'center',
     },
     header: {
         paddingTop: 50,
@@ -196,13 +222,16 @@ const styles = StyleSheet.create({
         marginTop: 25,
         marginHorizontal: -5,
     },
-    statCard: {
-        flex: 1,
+    statCardContainer: {
         marginHorizontal: 5,
+    },
+    statCard: {
         padding: 12,
         borderRadius: 15,
         backgroundColor: '#fff',
         alignItems: 'center',
+        height: 120, // Fixed height for consistency
+        justifyContent: 'center',
     },
     statIconContainer: {
         width: 36,
@@ -243,11 +272,11 @@ const styles = StyleSheet.create({
     actionsGrid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        justifyContent: 'space-between',
+        justifyContent: 'flex-start', // Better for uneven number of items
+        gap: 10, // Modern property, works in RN 0.71+ and Web
     },
     actionButton: {
-        width: (width - 60) / 2,
-        marginBottom: 15,
+        marginBottom: 10, // Fallback spacing
         borderRadius: 15,
         overflow: 'hidden',
         elevation: 3,
@@ -269,6 +298,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '600',
         color: '#fff',
+        textAlign: 'center',
     },
     activityCard: {
         borderRadius: 15,

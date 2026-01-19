@@ -4,7 +4,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const AuthContext = createContext();
 
-const API_URL = 'http://localhost:5000/api'; // Use your local IP if testing on a physical device
+let API_URL = 'http://localhost:5000/api';
+if (Platform.OS === 'web') {
+    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+        API_URL = '/api';
+    }
+}
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TextInput, ScrollView, Alert } from 'react-native';
+import { StyleSheet, View, Text, TextInput, ScrollView, Alert, Platform } from 'react-native';
 import { Button, Surface, IconButton, List, Divider } from 'react-native-paper';
 import { useAuth } from '../context/AuthContext';
 
@@ -18,7 +18,12 @@ const EditPlanScreen = ({ route, navigation }) => {
     // Add missing API update methods to AuthContext manually if they don't exist, 
     // but for now we'll assume they need to be called here or AuthContext needs update.
     // Given the previous code, we'll stick to using the payload correctly.
-    const API_URL = 'http://localhost:5000/api';
+    let API_URL = 'http://localhost:5000/api';
+    if (Platform.OS === 'web') {
+        if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+            API_URL = '/api';
+        }
+    }
 
     useEffect(() => {
         if (isEdit) {
