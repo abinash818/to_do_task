@@ -54,6 +54,8 @@ const StaffDashboard = ({ navigation }) => {
                 return { bg: '#d1fae5', color: '#059669', emoji: '✅' };
             case 'processing':
                 return { bg: '#dbeafe', color: '#2563eb', emoji: '⚙️' };
+            case 'waiting_approval':
+                return { bg: '#fffbeb', color: '#d97706', emoji: '⏳' };
             case 'overdue':
                 return { bg: '#fee2e2', color: '#dc2626', emoji: '⚠️' };
             default: // pending
@@ -62,7 +64,8 @@ const StaffDashboard = ({ navigation }) => {
     };
 
     const pendingCount = tasks.filter(t => t.status === 'pending').length;
-    const processingCount = tasks.filter(t => t.status === 'processing').length;
+    const processingCount = tasks.filter(t => t.status === 'in_progress').length;
+    const approvalCount = tasks.filter(t => t.status === 'waiting_approval').length;
     const completedCount = tasks.filter(t => t.status === 'completed').length;
     const overdueCount = tasks.filter(t => t.status === 'overdue').length;
 
@@ -71,6 +74,9 @@ const StaffDashboard = ({ navigation }) => {
         const progressColors = getProgressColor(progress);
         const completedSubtasks = item.subtasks.filter(s => s.completed).length;
         const statusStyle = getStatusStyle(item.status);
+
+        const daysRemaining = Math.ceil((new Date(item.deadline) - new Date()) / (1000 * 60 * 60 * 24));
+        const isOverdue = daysRemaining < 0;
 
         return (
             <Animated.View style={{
@@ -95,12 +101,15 @@ const StaffDashboard = ({ navigation }) => {
                                     style={[styles.statusChip, { backgroundColor: statusStyle.bg }]}
                                     textStyle={{ color: statusStyle.color, fontSize: 11 }}
                                 >
-                                    {item.status.toUpperCase()}
+                                    {item.status === 'waiting_approval' ? 'WAITING APPROVAL' : item.status.replace('_', ' ').toUpperCase()}
                                 </Chip>
                             </View>
 
                             <View style={styles.metaRow}>
                                 <Text style={styles.metaText}>📅 Due: {new Date(item.deadline).toLocaleDateString()}</Text>
+                                <Text style={[styles.metaText, { color: isOverdue ? '#ef4444' : '#059669', fontWeight: 'bold', marginLeft: 10 }]}>
+                                    {isOverdue ? `Overdue by ${Math.abs(daysRemaining)} days` : `${daysRemaining} Days Left`}
+                                </Text>
                             </View>
 
                             {/* Progress Section */}
@@ -126,7 +135,7 @@ const StaffDashboard = ({ navigation }) => {
                                 onPress={() => navigation.navigate('TaskDetail', { taskId: item._id })}
                                 labelStyle={styles.updateButtonLabel}
                             >
-                                Update Progress →
+                                {item.status === 'waiting_approval' ? 'View Details →' : 'Update Progress →'}
                             </Button>
                         </Card.Actions>
                     </Card>
@@ -159,8 +168,8 @@ const StaffDashboard = ({ navigation }) => {
                 {/* Stats Summary */}
                 <View style={styles.statsRow}>
                     <View style={styles.statBox}>
-                        <Text style={styles.statNumber}>{pendingCount}</Text>
-                        <Text style={styles.statLabel}>Pending</Text>
+                        <Text style={styles.statNumber}>{approvalCount}</Text>
+                        <Text style={styles.statLabel}>Pending Approval</Text>
                     </View>
                     <View style={styles.statDivider} />
                     <View style={styles.statBox}>

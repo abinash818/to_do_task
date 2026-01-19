@@ -55,7 +55,7 @@ const getTasks = async (req, res) => {
 // @route   PATCH /api/tasks/:id
 // @access  Private
 const updateTaskProgress = async (req, res) => {
-    const { subtasks, status } = req.body;
+    const { subtasks, status, submissionNote } = req.body;
 
     const task = await Task.findById(req.params.id);
 
@@ -68,12 +68,41 @@ const updateTaskProgress = async (req, res) => {
 
         if (subtasks) task.subtasks = subtasks;
         if (status) task.status = status;
+        if (submissionNote) task.submissionNote = submissionNote;
+
+        // If staff completes task, change to waiting_approval instead of completed
+        if (status === 'completed' && req.user.role !== 'admin') {
+            task.status = 'waiting_approval';
+        }
 
         const updatedTask = await task.save();
         res.json(updatedTask);
     } else {
         res.status(404).json({ message: 'Task not found' });
     }
+};
+
+// @desc    Review Task (Admin Approve/Reject)
+// @route   PUT /api/tasks/:id/review
+// @access  Private/Admin
+const reviewTask = async (req, res) => {
+    const { status, rejectionReason } = req.body;
+    const task = await Task.findById(req.params.id);
+
+    if (!task) {
+        return res.status(404).json({ message: 'Task not found' });
+    }
+
+    if (status === 'completed') {
+        task.status = 'completed';
+        task.rejectionReason = ''; // Clear previous rejection
+    } else if (status === 'in_progress') {
+        task.status = 'in_progress';
+        task.rejectionReason = rejectionReason || 'Rejected by Admin';
+    }
+
+    const updatedTask = await task.save();
+    res.json(updatedTask);
 };
 
 // @desc    Get task by ID
@@ -97,4 +126,5 @@ module.exports = {
     getTasks,
     updateTaskProgress,
     getTaskById,
+    reviewTask,
 };

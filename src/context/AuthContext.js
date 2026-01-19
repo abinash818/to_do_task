@@ -150,6 +150,20 @@ export const AuthProvider = ({ children }) => {
         return data;
     };
 
+    const reviewTask = async (taskId, status, rejectionReason) => {
+        const response = await fetch(`${API_URL}/tasks/${taskId}/review`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ status, rejectionReason }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Failed to review task');
+        return data;
+    };
+
     const getStaff = async () => {
         const response = await fetch(`${API_URL}/users`, {
             headers: { 'Authorization': `Bearer ${token}` }
@@ -173,7 +187,8 @@ export const AuthProvider = ({ children }) => {
             assignTask,
             getTasks,
             getStaff,
-            updateTaskProgress
+            updateTaskProgress,
+            reviewTask
         }}>
             {children}
         </AuthContext.Provider>

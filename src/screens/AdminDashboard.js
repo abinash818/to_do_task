@@ -39,7 +39,8 @@ const AdminDashboard = ({ navigation }) => {
                         tasks: tasks.length,
                         plans: plans.length,
                         staff: staff.length,
-                        pending: tasks.filter(t => t.status === 'pending').length
+                        pending: tasks.filter(t => t.status === 'pending').length,
+                        approvals: tasks.filter(t => t.status === 'waiting_approval').length
                     });
                 } catch (error) {
                     console.error('Failed to fetch stats:', error);
@@ -113,7 +114,7 @@ const AdminDashboard = ({ navigation }) => {
                     isWeb && styles.webContainer
                 ]}>
                     <StatCard icon="📋" value={stats.tasks} label="Total Tasks" color="#667eea" />
-                    <StatCard icon="⏳" value={stats.pending} label="Pending" color="#f59e0b" />
+                    <StatCard icon="⏳" value={stats.approvals} label="Approvals" color="#f59e0b" onPress={() => { }} />
                     <StatCard icon="📁" value={stats.plans} label="Plans" color="#10b981" onPress={() => navigation.navigate('ManagePlans')} />
                     <StatCard icon="👥" value={stats.staff} label="Staff" color="#8b5cf6" onPress={() => navigation.navigate('ManageStaff')} />
                 </Animated.View>

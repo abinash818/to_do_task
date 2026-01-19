@@ -30,8 +30,16 @@ const taskSchema = mongoose.Schema({
     }],
     status: {
         type: String,
-        enum: ['pending', 'processing', 'completed', 'overdue'],
+        enum: ['pending', 'processing', 'in_progress', 'waiting_approval', 'completed', 'overdue'],
         default: 'pending',
+    },
+    submissionNote: {
+        type: String,
+        default: '',
+    },
+    rejectionReason: {
+        type: String,
+        default: '',
     },
     deadline: {
         type: Date,
