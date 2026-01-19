@@ -23,6 +23,10 @@ const CustomerEntryScreen = ({ navigation }) => {
     const [totalAmount, setTotalAmount] = useState('');
     const [paidAmount, setPaidAmount] = useState('');
 
+    // Valuation Specifics
+    const [branchName, setBranchName] = useState('');
+    const [customBankName, setCustomBankName] = useState('');
+
     // Assignment
     const [selectedStaff, setSelectedStaff] = useState(null);
 
@@ -108,6 +112,27 @@ const CustomerEntryScreen = ({ navigation }) => {
                 subtasksToUse = [{ title: 'Initial Task', completed: false }];
             }
 
+            const isValuation = selectedPlan?.name?.toUpperCase() === 'VALUATION WORK';
+            let finalValuationDetails = null;
+
+            if (isValuation) {
+                if (!branchName) {
+                    Alert.alert('Error', 'Please enter Branch Name');
+                    setSaving(false);
+                    return;
+                }
+                const bank = selectedSubPlan?.name === 'Other' ? customBankName : selectedSubPlan?.name;
+                if (!bank) {
+                    Alert.alert('Error', 'Please specify Bank Name');
+                    setSaving(false);
+                    return;
+                }
+                finalValuationDetails = {
+                    bank,
+                    branch: branchName
+                };
+            }
+
             const payload = {
                 title: hasVariants ? `${title} - ${selectedSubPlan.name}` : title,
                 description,
@@ -124,7 +149,8 @@ const CustomerEntryScreen = ({ navigation }) => {
                 paymentDetails: {
                     totalAmount: parseFloat(totalAmount) || 0,
                     paidAmount: parseFloat(paidAmount) || 0
-                }
+                },
+                valuationDetails: finalValuationDetails
             };
 
             await assignTask(payload);
@@ -184,7 +210,9 @@ const CustomerEntryScreen = ({ navigation }) => {
                     {/* Sub-Plans for Building Plan/Variants */}
                     {selectedPlan?.variants && selectedPlan.variants.length > 0 && (
                         <View style={styles.subPlanContainer}>
-                            <Text style={styles.subPlanTitle}>Select Type:</Text>
+                            <Text style={styles.subPlanTitle}>
+                                {selectedPlan?.name?.toUpperCase() === 'VALUATION WORK' ? 'Select Bank:' : 'Select Type:'}
+                            </Text>
                             <View style={styles.subPlanGrid}>
                                 {selectedPlan.variants.map((variant, index) => (
                                     <TouchableOpacity
@@ -198,6 +226,29 @@ const CustomerEntryScreen = ({ navigation }) => {
                                     </TouchableOpacity>
                                 ))}
                             </View>
+                        </View>
+                    )}
+
+                    {/* Valuation Specific Inputs */}
+                    {selectedPlan?.name?.toUpperCase() === 'VALUATION WORK' && (
+                        <View style={styles.valuationContainer}>
+                            <Text style={styles.subPlanTitle}>Valuation Details:</Text>
+
+                            {selectedSubPlan?.name === 'Other' && (
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Enter Custom Bank Name *"
+                                    value={customBankName}
+                                    onChangeText={setCustomBankName}
+                                />
+                            )}
+
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Branch Name *"
+                                value={branchName}
+                                onChangeText={setBranchName}
+                            />
                         </View>
                     )}
 
@@ -297,7 +348,8 @@ const styles = StyleSheet.create({
     subPlanChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 15, backgroundColor: '#e0e0e0', marginRight: 8, marginBottom: 8 },
     selectedSubPlanChip: { backgroundColor: '#667eea' },
     subPlanText: { fontSize: 13, color: '#333' },
-    selectedLinkText: { color: '#fff', fontWeight: 'bold' }
+    selectedLinkText: { color: '#fff', fontWeight: 'bold' },
+    valuationContainer: { marginTop: 10, padding: 10, backgroundColor: '#e3f2fd', borderRadius: 8, marginBottom: 15 }
 });
 
 export default CustomerEntryScreen;

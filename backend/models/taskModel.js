@@ -60,6 +60,10 @@ const taskSchema = mongoose.Schema({
         totalAmount: Number,
         paidAmount: Number,
     },
+    valuationDetails: {
+        bank: String,
+        branch: String,
+    },
 }, {
     timestamps: true,
 });

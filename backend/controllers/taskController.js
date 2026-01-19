@@ -5,7 +5,7 @@ const User = require('../models/userModel');
 // @route   POST /api/tasks
 // @access  Private/Admin
 const assignTask = async (req, res) => {
-    const { title, description, assignedTo, planId, subtasks, deadline, customerDetails, paymentDetails } = req.body;
+    const { title, description, assignedTo, planId, subtasks, deadline, customerDetails, paymentDetails, valuationDetails } = req.body;
 
     if (!title || !assignedTo || !deadline) {
         res.status(400).json({ message: 'Please provide title, assignedTo, and deadline' });
@@ -29,6 +29,7 @@ const assignTask = async (req, res) => {
         assignedBy: req.user._id,
         customerDetails,
         paymentDetails,
+        valuationDetails,
     });
 
     if (task) {
