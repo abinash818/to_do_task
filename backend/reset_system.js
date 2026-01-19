@@ -19,15 +19,14 @@ const resetSystem = async () => {
         console.log('❌ All Users, Tasks, Plans deleted.');
 
         // 2. Create Users
-        const salt = await bcrypt.genSalt(10);
-        const adminHash = await bcrypt.hash('12345', salt);
-        const staffHash = await bcrypt.hash('12345', salt);
+        // NOTE: The User model has a pre-save hook that hashes the password.
+        // So we must provide the PLAIN TEXT password here.
 
         const admin = await User.create({
             name: 'System Admin',
             username: 'admin',
             email: 'admin@gmail.com',
-            password: adminHash,
+            password: '12345',
             role: 'admin'
         });
 
@@ -35,7 +34,7 @@ const resetSystem = async () => {
             name: 'Rajesh',
             username: 'rajesh',
             email: 'rajesh@gmail.com',
-            password: staffHash,
+            password: '12345',
             role: 'staff'
         });
 
