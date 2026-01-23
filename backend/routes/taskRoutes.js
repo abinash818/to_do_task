@@ -14,9 +14,9 @@ router.route('/')
 
 router.route('/:id')
     .get(protect, getTaskById)
-    .get(protect, getTaskById)
     .patch(protect, updateTaskProgress);
 
 router.put('/:id/review', protect, admin, require('../controllers/taskController').reviewTask);
+router.put('/:id/subtask/:subtaskId', protect, require('../controllers/taskController').reviewSubtask);
 
 module.exports = router;

@@ -1,20 +1,32 @@
 const Task = require('../models/taskModel');
 const User = require('../models/userModel');
 
+// Helper to update overdue status
+const updateOverdueTasks = async () => {
+    const now = new Date();
+    await Task.updateMany(
+        {
+            deadline: { $lt: now },
+            status: { $nin: ['completed', 'overdue'] }
+        },
+        { status: 'overdue' }
+    );
+};
+
 // @desc    Assign a task to a staff member
 // @route   POST /api/tasks
 // @access  Private/Admin
 const assignTask = async (req, res) => {
-    const { title, description, assignedTo, planId, subtasks, deadline, customerDetails, paymentDetails, valuationDetails } = req.body;
+    const { title, description, assignedTo, managerId, planId, subtasks, deadline, customerDetails, paymentDetails, valuationDetails } = req.body;
 
     if (!title || !assignedTo || !deadline) {
         res.status(400).json({ message: 'Please provide title, assignedTo, and deadline' });
         return;
     }
 
-    // Verify staff exists
+    // Verify staff exists (Can be staff or manager)
     const staff = await User.findById(assignedTo);
-    if (!staff || staff.role !== 'staff') {
+    if (!staff || (staff.role !== 'staff' && staff.role !== 'manager')) {
         res.status(400).json({ message: 'Invalid staff member' });
         return;
     }
@@ -23,8 +35,14 @@ const assignTask = async (req, res) => {
         title,
         description,
         assignedTo,
+        managerId,
         plan: planId,
-        subtasks: subtasks.map(s => ({ title: s.title || s, completed: false, reason: '' })),
+        subtasks: subtasks.map(s => ({
+            title: s.title || s,
+            completed: false,
+            status: 'pending',
+            reason: ''
+        })),
         deadline,
         assignedBy: req.user._id,
         customerDetails,
@@ -39,13 +57,26 @@ const assignTask = async (req, res) => {
     }
 };
 
-// @desc    Get all tasks (Admin) or user tasks (Staff)
+// @desc    Get all tasks (Admin) or user tasks (Staff/Manager)
 // @route   GET /api/tasks
 // @access  Private
 const getTasks = async (req, res) => {
+    await updateOverdueTasks();
+
     let tasks;
     if (req.user.role === 'admin') {
-        tasks = await Task.find({}).populate('assignedTo', 'name username').populate('plan', 'name');
+        tasks = await Task.find({})
+            .populate('assignedTo', 'name username')
+            .populate('managerId', 'name username')
+            .populate('plan', 'name');
+    } else if (req.user.role === 'manager') {
+        // Managers see tasks they manage OR are assigned to
+        tasks = await Task.find({
+            $or: [
+                { managerId: req.user._id },
+                { assignedTo: req.user._id }
+            ]
+        }).populate('assignedTo', 'name username').populate('assignedBy', 'name');
     } else {
         tasks = await Task.find({ assignedTo: req.user._id }).populate('assignedBy', 'name');
     }
@@ -61,8 +92,11 @@ const updateTaskProgress = async (req, res) => {
     const task = await Task.findById(req.params.id);
 
     if (task) {
-        // Only assigned staff or admin can update
-        if (task.assignedTo.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+        // Only assigned staff, manager or admin can update
+        const isAssigned = task.assignedTo.toString() === req.user._id.toString();
+        const isManager = task.managerId && task.managerId.toString() === req.user._id.toString();
+
+        if (!isAssigned && !isManager && req.user.role !== 'admin') {
             res.status(401).json({ message: 'Not authorized' });
             return;
         }
@@ -83,6 +117,40 @@ const updateTaskProgress = async (req, res) => {
     }
 };
 
+// @desc    Review Subtask (Manager/Admin)
+// @route   PUT /api/tasks/:id/subtask/:subtaskId
+// @access  Private
+const reviewSubtask = async (req, res) => {
+    const { status, managerNote } = req.body;
+    const task = await Task.findById(req.params.id);
+
+    if (!task) {
+        return res.status(404).json({ message: 'Task not found' });
+    }
+
+    // Check if user is manager of this task or admin
+    const isManager = task.managerId && task.managerId.toString() === req.user._id.toString();
+    if (!isManager && req.user.role !== 'admin') {
+        return res.status(401).json({ message: 'Only managers can approve subtasks' });
+    }
+
+    const subtask = task.subtasks.id(req.params.subtaskId);
+    if (!subtask) {
+        return res.status(404).json({ message: 'Subtask not found' });
+    }
+
+    subtask.status = status; // 'completed' or 'rejected'
+    if (status === 'completed') {
+        subtask.completed = true;
+    } else if (status === 'rejected') {
+        subtask.completed = false;
+    }
+    subtask.managerNote = managerNote;
+
+    const updatedTask = await task.save();
+    res.json(updatedTask);
+};
+
 // @desc    Review Task (Admin Approve/Reject)
 // @route   PUT /api/tasks/:id/review
 // @access  Private/Admin
@@ -97,8 +165,8 @@ const reviewTask = async (req, res) => {
     if (status === 'completed') {
         task.status = 'completed';
         task.rejectionReason = ''; // Clear previous rejection
-    } else if (status === 'in_progress') {
-        task.status = 'in_progress';
+    } else if (status === 'in_progress' || status === 'pending') {
+        task.status = status;
         task.rejectionReason = rejectionReason || 'Rejected by Admin';
     }
 
@@ -112,6 +180,7 @@ const reviewTask = async (req, res) => {
 const getTaskById = async (req, res) => {
     const task = await Task.findById(req.params.id)
         .populate('assignedTo', 'name username')
+        .populate('managerId', 'name username')
         .populate('assignedBy', 'name')
         .populate('plan', 'name');
 
@@ -128,4 +197,5 @@ module.exports = {
     updateTaskProgress,
     getTaskById,
     reviewTask,
+    reviewSubtask,
 };

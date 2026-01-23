@@ -30,12 +30,14 @@ const CustomerEntryScreen = ({ navigation }) => {
 
     // Assignment
     const [selectedStaff, setSelectedStaff] = useState(null);
+    const [selectedManager, setSelectedManager] = useState(null);
     const [staffList, setStaffList] = useState([]);
+    const [managerList, setManagerList] = useState([]);
     const [planList, setPlanList] = useState([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
-    const { getPlans, assignTask, getStaff } = useAuth();
+    const { getPlans, assignTask, getStaff, getManagers } = useAuth();
 
     const buildingSubPlans = [
         { label: 'Self', days: 5 },
@@ -48,12 +50,14 @@ const CustomerEntryScreen = ({ navigation }) => {
         const fetchData = async () => {
             try {
                 setLoading(true);
-                const [plans, staff] = await Promise.all([
+                const [plans, staff, managers] = await Promise.all([
                     getPlans().catch(() => []),
-                    getStaff().catch(() => [])
+                    getStaff().catch(() => []),
+                    getManagers().catch(() => [])
                 ]);
                 setPlanList(plans);
                 setStaffList(staff);
+                setManagerList(managers);
             } catch (error) {
                 console.error('Fetch error:', error);
                 Alert.alert('Error', 'Failed to load data');
@@ -62,7 +66,7 @@ const CustomerEntryScreen = ({ navigation }) => {
             }
         };
         fetchData();
-    }, [getPlans, getStaff]);
+    }, [getPlans, getStaff, getManagers]);
 
     const handleSelectPlan = (plan) => {
         setSelectedPlan(plan);
@@ -104,11 +108,11 @@ const CustomerEntryScreen = ({ navigation }) => {
             // Otherwise use default plan subtasks.
             let subtasksToUse = [];
             if (selectedSubPlan && selectedSubPlan.subtasks && selectedSubPlan.subtasks.length > 0) {
-                subtasksToUse = selectedSubPlan.subtasks.map(s => ({ title: s.title, completed: false }));
+                subtasksToUse = selectedSubPlan.subtasks.map(s => ({ title: s.title, completed: false, status: 'pending' }));
             } else if (selectedPlan) {
-                subtasksToUse = selectedPlan.subtasks.map(s => ({ title: s.title, completed: false }));
+                subtasksToUse = selectedPlan.subtasks.map(s => ({ title: s.title, completed: false, status: 'pending' }));
             } else {
-                subtasksToUse = [{ title: 'Initial Task', completed: false }];
+                subtasksToUse = [{ title: 'Initial Task', completed: false, status: 'pending' }];
             }
 
             const isValuation = selectedPlan?.name?.toUpperCase() === 'VALUATION WORK';
@@ -136,6 +140,7 @@ const CustomerEntryScreen = ({ navigation }) => {
                 title: hasVariants ? `${title} - ${selectedSubPlan.name}` : title,
                 description,
                 assignedTo: selectedStaff._id,
+                managerId: selectedManager?._id,
                 planId: selectedPlan?._id,
                 subtasks: subtasksToUse,
                 deadline: deadline.toISOString(),
@@ -293,6 +298,25 @@ const CustomerEntryScreen = ({ navigation }) => {
 
                 {/* 4. Assignment */}
                 <Surface style={styles.section} elevation={1}>
+                    <Text style={styles.sectionHeader}>📋 Reviewer / Manager</Text>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
+                        <TouchableOpacity
+                            style={[styles.chip, !selectedManager && styles.selectedChip]}
+                            onPress={() => setSelectedManager(null)}
+                        >
+                            <Text style={!selectedManager ? styles.selectedChipText : {}}>No Manager</Text>
+                        </TouchableOpacity>
+                        {managerList.map(manager => (
+                            <TouchableOpacity
+                                key={manager._id}
+                                style={[styles.chip, selectedManager?._id === manager._id && styles.selectedChip]}
+                                onPress={() => setSelectedManager(manager)}
+                            >
+                                <Text style={selectedManager?._id === manager._id ? styles.selectedChipText : {}}>{manager.name}</Text>
+                            </TouchableOpacity>
+                        ))}
+                    </ScrollView>
+
                     <Text style={styles.sectionHeader}>👷 Assign Staff</Text>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
                         {staffList.map(staff => (

@@ -164,13 +164,36 @@ export const AuthProvider = ({ children }) => {
         return data;
     };
 
+    const reviewSubtask = async (taskId, subtaskId, status, managerNote) => {
+        const response = await fetch(`${API_URL}/tasks/${taskId}/subtask/${subtaskId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ status, managerNote }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Failed to review subtask');
+        return data;
+    };
+
     const getStaff = async () => {
         const response = await fetch(`${API_URL}/users`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.message || 'Failed to fetch staff');
-        return data.filter(u => u.role === 'staff');
+        return data.filter(u => u.role === 'staff' || u.role === 'manager');
+    };
+
+    const getManagers = async () => {
+        const response = await fetch(`${API_URL}/users`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Failed to fetch managers');
+        return data.filter(u => u.role === 'manager');
     };
 
     return (
@@ -187,8 +210,10 @@ export const AuthProvider = ({ children }) => {
             assignTask,
             getTasks,
             getStaff,
+            getManagers,
             updateTaskProgress,
-            reviewTask
+            reviewTask,
+            reviewSubtask
         }}>
             {children}
         </AuthContext.Provider>

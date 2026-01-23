@@ -9,6 +9,7 @@ const AddStaffScreen = ({ navigation }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
+    const [role, setRole] = useState('staff');
     const [loading, setLoading] = useState(false);
     const { registerStaff } = useAuth();
 
@@ -35,10 +36,10 @@ const AddStaffScreen = ({ navigation }) => {
                 username,
                 password,
                 name,
-                role: 'staff'
+                role
             });
 
-            Alert.alert('Success', 'Staff account created successfully!');
+            Alert.alert('Success', `${role.charAt(0).toUpperCase() + role.slice(1)} account created successfully!`);
             navigation.goBack();
         } catch (error) {
             Alert.alert('Creation Failed', error.message);
@@ -121,6 +122,22 @@ const AddStaffScreen = ({ navigation }) => {
                                         onChangeText={setPassword}
                                         secureTextEntry
                                     />
+                                </View>
+
+                                <Text style={styles.inputLabel}>Role</Text>
+                                <View style={styles.roleContainer}>
+                                    <TouchableOpacity
+                                        style={[styles.roleChip, role === 'staff' && styles.selectedRoleChip]}
+                                        onPress={() => setRole('staff')}
+                                    >
+                                        <Text style={[styles.roleText, role === 'staff' && styles.selectedRoleText]}>Staff</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        style={[styles.roleChip, role === 'manager' && styles.selectedRoleChip]}
+                                        onPress={() => setRole('manager')}
+                                    >
+                                        <Text style={[styles.roleText, role === 'manager' && styles.selectedRoleText]}>Manager</Text>
+                                    </TouchableOpacity>
                                 </View>
                             </View>
 
@@ -233,6 +250,31 @@ const styles = StyleSheet.create({
     },
     buttonContent: {
         paddingVertical: 8,
+    },
+    roleContainer: {
+        flexDirection: 'row',
+        gap: 12,
+        marginBottom: 20,
+    },
+    roleChip: {
+        flex: 1,
+        paddingVertical: 12,
+        borderRadius: 12,
+        backgroundColor: '#f8f9fa',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#eee',
+    },
+    selectedRoleChip: {
+        backgroundColor: '#8b5cf6',
+        borderColor: '#8b5cf6',
+    },
+    roleText: {
+        color: '#666',
+        fontWeight: 'bold',
+    },
+    selectedRoleText: {
+        color: '#fff',
     },
 });
 

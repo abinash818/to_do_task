@@ -13,6 +13,10 @@ const taskSchema = mongoose.Schema({
         required: true,
         ref: 'User',
     },
+    managerId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+    },
     plan: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Plan',
@@ -23,7 +27,16 @@ const taskSchema = mongoose.Schema({
             type: Boolean,
             default: false,
         },
+        status: {
+            type: String,
+            enum: ['pending', 'waiting_approval', 'completed', 'rejected'],
+            default: 'pending',
+        },
         reason: {
+            type: String,
+            default: '',
+        },
+        managerNote: {
             type: String,
             default: '',
         }
