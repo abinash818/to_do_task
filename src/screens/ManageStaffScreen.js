@@ -225,7 +225,20 @@ const ManageStaffScreen = ({ navigation }) => {
                                     </Text>
                                 </View>
                                 <View style={styles.staffDetails}>
-                                    <Text style={styles.staffName}>{staff.name}</Text>
+                                    <View style={styles.nameRow}>
+                                        <Text style={styles.staffName}>{staff.name}</Text>
+                                        <View style={[
+                                            styles.roleTag,
+                                            { backgroundColor: staff.role === 'manager' ? '#fee2e2' : '#f3f4f6' }
+                                        ]}>
+                                            <Text style={[
+                                                styles.roleText,
+                                                { color: staff.role === 'manager' ? '#ef4444' : '#6b7280' }
+                                            ]}>
+                                                {staff.role?.toUpperCase() || 'STAFF'}
+                                            </Text>
+                                        </View>
+                                    </View>
                                     <Text style={styles.staffUsername}>@{staff.username}</Text>
                                 </View>
                             </View>
@@ -412,6 +425,20 @@ const styles = StyleSheet.create({
     },
     staffDetails: {
         flex: 1,
+    },
+    nameRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    roleTag: {
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: 10,
+        marginLeft: 8,
+    },
+    roleText: {
+        fontSize: 10,
+        fontWeight: 'bold',
     },
     staffName: {
         fontSize: 16,

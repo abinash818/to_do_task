@@ -38,7 +38,8 @@ const AdminDashboard = ({ navigation }) => {
                     setStats({
                         tasks: tasks.length,
                         plans: plans.length,
-                        staff: staff.length,
+                        staff: staff.filter(u => u.role === 'staff').length,
+                        managers: staff.filter(u => u.role === 'manager').length,
                         pending: tasks.filter(t => t.status === 'pending').length,
                         approvals: tasks.filter(t => t.status === 'waiting_approval').length
                     });
@@ -117,6 +118,7 @@ const AdminDashboard = ({ navigation }) => {
                     <StatCard icon="⏳" value={stats.approvals} label="Approvals" color="#f59e0b" onPress={() => navigation.navigate('TaskApprovals')} />
                     <StatCard icon="📁" value={stats.plans} label="Plans" color="#10b981" onPress={() => navigation.navigate('ManagePlans')} />
                     <StatCard icon="👥" value={stats.staff} label="Staff" color="#8b5cf6" onPress={() => navigation.navigate('ManageStaff')} />
+                    <StatCard icon="🛡️" value={stats.managers} label="Managers" color="#ef4444" onPress={() => navigation.navigate('ManageStaff')} />
                 </Animated.View>
             </LinearGradient>
 
@@ -165,7 +167,7 @@ const AdminDashboard = ({ navigation }) => {
                         <Card.Content>
                             <Title style={styles.cardTitle}>📈 Dashboard Overview</Title>
                             <Paragraph style={styles.cardDescription}>
-                                You have {stats.pending} pending tasks and {stats.staff} active staff members.
+                                You have {stats.pending} pending tasks, {stats.staff} staff, and {stats.managers} managers.
                                 Use the quick actions above to manage your team efficiently.
                             </Paragraph>
                         </Card.Content>
