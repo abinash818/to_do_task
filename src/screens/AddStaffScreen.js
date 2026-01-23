@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { StyleSheet, View, Text, TextInput, KeyboardAvoidingView, Platform, ScrollView, Animated, StatusBar } from 'react-native';
+import { StyleSheet, View, Text, TextInput, KeyboardAvoidingView, Platform, ScrollView, Animated, StatusBar, TouchableOpacity } from 'react-native';
 import { Button, Surface, IconButton } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../context/AuthContext';
